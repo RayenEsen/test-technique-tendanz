@@ -48,3 +48,19 @@ CREATE INDEX idx_quote_zone_id ON quote(zone_id);
 CREATE INDEX idx_quote_client_name ON quote(client_name);
 CREATE INDEX idx_quote_created_at ON quote(created_at);
 CREATE INDEX idx_pricing_rule_product_id ON pricing_rule(product_id);
+
+-- Quote History Table (bonus: tracks modifications)
+CREATE TABLE quote_history (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    quote_id BIGINT NOT NULL,
+    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    change_type VARCHAR(20) NOT NULL,
+    previous_final_price DECIMAL(10, 2),
+    new_final_price DECIMAL(10, 2),
+    previous_zone_code VARCHAR(50),
+    new_zone_code VARCHAR(50),
+    previous_product_name VARCHAR(100),
+    new_product_name VARCHAR(100),
+    change_description VARCHAR(500),
+    FOREIGN KEY (quote_id) REFERENCES quote(id)
+);
