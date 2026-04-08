@@ -1,98 +1,84 @@
-# Test Technique — Full Stack Engineer — Tendanz Group
+# Insurance Pricing Engine — Tendanz Group Technical Test
 
-## Moteur de Tarification Assurance
-
-### Contexte
-
-Développement d'un **moteur de tarification d'assurance** permettant de calculer le prix d'une couverture en fonction du profil client, du produit choisi et de la zone géographique.
+A fullstack insurance pricing engine built with Spring Boot 3.2 and Angular 17.
 
 ---
 
-### Structure du projet
+## Prerequisites
 
-```
-├── backend/          # Spring Boot 3.2 — Java 17
-│   ├── pom.xml
-│   └── src/
-│       ├── main/java/com/tendanz/pricing/
-│       │   ├── config/
-│       │   │   └── CorsConfig.java              # CORS pour Angular
-│       │   ├── controller/
-│       │   │   ├── ProductController.java        # GET /api/products
-│       │   │   └── QuoteController.java          # POST & GET /api/quotes
-│       │   ├── service/
-│       │   │   └── PricingService.java           # Logique métier de tarification
-│       │   ├── repository/
-│       │   │   ├── ProductRepository.java
-│       │   │   ├── ZoneRepository.java
-│       │   │   ├── PricingRuleRepository.java
-│       │   │   └── QuoteRepository.java          # Requêtes custom
-│       │   ├── entity/                           # Entités JPA
-│       │   ├── dto/                              # QuoteRequest / QuoteResponse
-│       │   ├── exception/
-│       │   │   └── GlobalExceptionHandler.java   # Gestion centralisée des erreurs
-│       │   └── enums/
-│       │       └── AgeCategory.java
-│       └── main/resources/
-│           ├── schema.sql
-│           ├── data.sql
-│           └── application.yml
-│
-└── frontend/         # Angular 17 — Standalone Components
-    ├── package.json
-    └── src/app/
-        ├── services/
-        │   ├── quote.service.ts      # Appels API quotes
-        │   └── product.service.ts    # Appels API products
-        ├── pages/
-        │   ├── quote-form/           # Formulaire de création
-        │   ├── quote-list/           # Liste avec filtres et tri
-        │   └── quote-detail/         # Détail d'un devis
-        └── models/                   # Interfaces TypeScript
-```
+- Java 17+
+- Maven 3.8+
+- Node.js 18+ and npm
 
 ---
 
-### Démarrage rapide
+## Running the Backend
 
-**Backend :**
 ```bash
 cd backend
 mvn spring-boot:run
-# API disponible sur http://localhost:8080
-# Console H2 : http://localhost:8080/h2-console
-# JDBC URL: jdbc:h2:mem:testdb — user: sa — password: (vide)
 ```
 
-**Frontend :**
+- API available at: `http://localhost:8080`
+- H2 Console: `http://localhost:8080/h2-console`
+  - JDBC URL: `jdbc:h2:mem:testdb`
+  - Username: `sa`
+  - Password: *(leave empty)*
+
+The database is in-memory (H2) and is automatically seeded with zones, products, and pricing rules on startup. No setup required.
+
+---
+
+## Running the Frontend
+
 ```bash
 cd frontend
 npm install
 ng serve
-# App disponible sur http://localhost:4200
 ```
 
-**Tests backend :**
-```bash
-cd backend
-mvn test
-# 8 tests — tous passent
-```
+- App available at: `http://localhost:4200`
+- Make sure the backend is running first (CORS is configured for port 4200)
 
 ---
 
-### Formule de tarification
+## Running Backend Tests
+
+```bash
+cd backend
+mvn test
+```
+
+8 unit tests — all passing. Covers all age categories (YOUNG, ADULT, SENIOR, ELDERLY), error cases, and boundary conditions.
+
+---
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/products` | List all insurance products |
+| POST | `/api/quotes` | Create a new quote |
+| GET | `/api/quotes` | List all quotes (optional filters: `productId`, `minPrice`) |
+| GET | `/api/quotes?page=0&size=10` | Paginated quotes |
+| GET | `/api/quotes/{id}` | Get quote by ID |
+| GET | `/api/quotes/{id}/pdf` | Export quote as PDF |
+| GET | `/api/quotes/{id}/history` | Get modification history |
+
+---
+
+## Pricing Formula
 
 ```
-Prix Final = Taux de Base × Facteur Âge × Coefficient Zone
+Final Price = Base Rate × Age Factor × Zone Coefficient
 ```
 
-| Tranche d'âge | Catégorie | Facteur |
-|---------------|-----------|---------|
-| 18 - 24 ans   | YOUNG     | 1.30    |
-| 25 - 45 ans   | ADULT     | 1.00    |
-| 46 - 65 ans   | SENIOR    | 1.20    |
-| 66 - 99 ans   | ELDERLY   | 1.50    |
+| Age Range | Category | Factor |
+|-----------|----------|--------|
+| 18 - 24   | YOUNG    | 1.30   |
+| 25 - 45   | ADULT    | 1.00   |
+| 46 - 65   | SENIOR   | 1.20   |
+| 66 - 99   | ELDERLY  | 1.50   |
 
 | Zone        | Code | Coefficient |
 |-------------|------|-------------|
@@ -100,37 +86,35 @@ Prix Final = Taux de Base × Facteur Âge × Coefficient Zone
 | Sfax        | SFX  | 1.00        |
 | Sousse      | SOU  | 1.10        |
 
-| Produit              | Taux de Base (TND) |
-|----------------------|--------------------|
-| Assurance Auto       | 500.00             |
-| Assurance Habitation | 300.00             |
-| Assurance Santé      | 800.00             |
+| Product              | Base Rate (TND) |
+|----------------------|-----------------|
+| Assurance Auto       | 500.00          |
+| Assurance Habitation | 300.00          |
+| Assurance Santé      | 800.00          |
+| Assurance Voyage     | 250.00          |
 
-**Exemple :** Client de 30 ans, zone Tunis, Assurance Auto = 500 × 1.00 × 1.20 = **600.00 TND**
-
----
-
-### Choix techniques
-
-**Backend**
-- Architecture en couches classique : Controller → Service → Repository
-- `@ControllerAdvice` pour centraliser la gestion des erreurs (400, 404, 500)
-- `BigDecimal` pour tous les calculs financiers (précision garantie)
-- `JavaTimeModule` enregistré sur `ObjectMapper` pour la sérialisation de `LocalDateTime`
-- CORS configuré via `WebMvcConfigurer` pour autoriser `localhost:4200`
-- Tests avec `@DataJpaTest` + `@Import` pour tester le service avec une vraie base H2
-
-**Frontend**
-- Services Angular avec `HttpClient` + opérateur `catchError` de RxJS
-- `HttpParams` pour les filtres optionnels sur `GET /api/quotes`
-- Reactive Forms avec `FormBuilder` et `Validators` pour la validation côté client
-- Tri en mémoire sur les résultats de la liste (date / prix, asc / desc)
-- Standalone components Angular 17 (pas de NgModule)
+**Example:** Client aged 30, zone Tunis, Auto Insurance = 500 × 1.00 × 1.20 = **600.00 TND**
 
 ---
 
-### Deadline
+## What Was Implemented
 
-**Samedi 11 avril 2026 à 23h59**
+### Backend
+- `PricingService.calculateQuote()` — full pricing logic with `BigDecimal` precision
+- `QuoteController` — 3 REST endpoints (POST, GET by ID, GET list with filters)
+- `QuoteRepository` — custom queries: `findByClientName`, `findByProductId`, price threshold query
+- `GlobalExceptionHandler` — centralized 400 / 404 / 500 error handling
+- `CorsConfig` — allows Angular frontend on port 4200
+- 8 unit tests in `PricingServiceTest`
 
-Envoyez le lien de votre repository à : **recrutement.tn@tendanz.com**
+### Frontend
+- `QuoteService` and `ProductService` — HTTP calls with `catchError`
+- Quote Form — Reactive Form with validation (required fields, age 18-99), product dropdown from API
+- Quote List — table with sort by date/price, filter by product and min price, pagination
+- Quote Detail — full pricing breakdown with applied rules
+
+### Bonus
+- Pagination — `GET /api/quotes?page=0&size=10` returns `PagedResponse`
+- PDF Export — `GET /api/quotes/{id}/pdf` generates a styled PDF (OpenPDF)
+- Quote History — `GET /api/quotes/{id}/history` tracks creation events
+- 4th Product — Assurance Voyage (250 TND base rate, custom age factors)
