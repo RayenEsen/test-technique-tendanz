@@ -43,8 +43,9 @@ public class QuoteController {
      */
     @PostMapping
     public ResponseEntity<QuoteResponse> createQuote(@Valid @RequestBody QuoteRequest request) {
-        // TODO: Implement this endpoint
-        throw new UnsupportedOperationException("TODO: Implement createQuote endpoint");
+        log.info("Creating quote for client: {}, product: {}, zone: {}", request.getClientName(), request.getProductId(), request.getZoneCode());
+        QuoteResponse response = pricingService.calculateQuote(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
@@ -85,7 +86,8 @@ public class QuoteController {
     public ResponseEntity<List<QuoteResponse>> getAllQuotes(
             @RequestParam(required = false) Long productId,
             @RequestParam(required = false) Double minPrice) {
-        // TODO: Implement filtering and retrieval logic
-        throw new UnsupportedOperationException("TODO: Implement getAllQuotes endpoint");
+        log.info("Fetching quotes with filters - productId: {}, minPrice: {}", productId, minPrice);
+        List<QuoteResponse> responses = pricingService.getQuotes(productId, minPrice);
+        return ResponseEntity.ok(responses);
     }
 }
