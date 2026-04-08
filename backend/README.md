@@ -1,243 +1,201 @@
-# Pricing Engine - Technical Test Backend
+# Pricing Engine — Backend
 
-This is a Spring Boot backend for a pricing engine system designed for insurance and financial products. This is a technical assessment for Full Stack Java Spring Boot + Angular candidates at Tendanz Group.
+Spring Boot 3.2 / Java 17 backend for the Tendanz insurance pricing engine.
 
-## Project Structure
+---
+
+## Stack technique
+
+| Technologie        | Usage                              |
+|--------------------|------------------------------------|
+| Java 17            | Langage                            |
+| Spring Boot 3.2    | Framework applicatif               |
+| Spring Data JPA    | ORM et accès aux données           |
+| H2 (in-memory)     | Base de données de développement   |
+| Lombok             | Réduction du boilerplate           |
+| JUnit 5            | Tests unitaires                    |
+| Jackson JSR310     | Sérialisation des dates Java 8+    |
+
+---
+
+## Structure
 
 ```
-backend/
-├── pom.xml                          # Maven configuration with dependencies
-├── src/
-│   ├── main/
-│   │   ├── java/com/tendanz/pricing/
-│   │   │   ├── PricingApplication.java          # Main Spring Boot entry point
-│   │   │   ├── controller/
-│   │   │   │   └── QuoteController.java         # REST API endpoints (TODO)
-│   │   │   ├── service/
-│   │   │   │   └── PricingService.java          # Business logic (TODO)
-│   │   │   ├── repository/
-│   │   │   │   ├── ProductRepository.java       # Product data access
-│   │   │   │   ├── ZoneRepository.java          # Zone data access
-│   │   │   │   ├── PricingRuleRepository.java   # Pricing rule data access
-│   │   │   │   └── QuoteRepository.java         # Quote data access (TODO)
-│   │   │   ├── entity/
-│   │   │   │   ├── Product.java                 # Product entity
-│   │   │   │   ├── Zone.java                    # Zone entity
-│   │   │   │   ├── PricingRule.java             # Pricing rule entity
-│   │   │   │   └── Quote.java                   # Quote entity (TODO)
-│   │   │   ├── dto/
-│   │   │   │   ├── QuoteRequest.java            # Request DTO with validation
-│   │   │   │   └── QuoteResponse.java           # Response DTO
-│   │   │   ├── enums/
-│   │   │   │   └── AgeCategory.java             # Age category enum
-│   │   │   └── exception/
-│   │   │       └── GlobalExceptionHandler.java  # Centralized error handling (TODO)
-│   │   └── resources/
-│   │       ├── application.yml                  # Spring configuration
-│   │       ├── schema.sql                       # Database schema
-│   │       └── data.sql                         # Initial test data
-│   └── test/
-│       └── java/com/tendanz/pricing/
-│           └── PricingServiceTest.java          # Service tests (TODO)
-└── README.md                        # This file
+src/main/java/com/tendanz/pricing/
+├── PricingApplication.java          # Point d'entrée + bean ObjectMapper
+├── config/
+│   └── CorsConfig.java              # Autorisation CORS pour Angular (port 4200)
+├── controller/
+│   ├── ProductController.java       # GET /api/products
+│   └── QuoteController.java         # POST /api/quotes, GET /api/quotes, GET /api/quotes/{id}
+├── service/
+│   └── PricingService.java          # Calcul de tarification et récupération des devis
+├── repository/
+│   ├── ProductRepository.java
+│   ├── ZoneRepository.java
+│   ├── PricingRuleRepository.java
+│   └── QuoteRepository.java         # findByClientName, findByProductId, findByFinalPrice...
+├── entity/
+│   ├── Product.java
+│   ├── Zone.java
+│   ├── PricingRule.java
+│   └── Quote.java
+├── dto/
+│   ├── QuoteRequest.java            # Validation @NotNull, @Min, @Max, @NotBlank
+│   └── QuoteResponse.java
+├── enums/
+│   └── AgeCategory.java             # YOUNG / ADULT / SENIOR / ELDERLY + fromAge()
+└── exception/
+    └── GlobalExceptionHandler.java  # @ControllerAdvice — 400 / 404 / 500
 ```
 
-## Technology Stack
+---
 
-- **Java 17** - Language
-- **Spring Boot 3.2** - Framework
-- **Spring Data JPA** - ORM and data access
-- **H2 Database** - In-memory database for testing
-- **Lombok** - Boilerplate code reduction
-- **MapStruct** - DTO mapping (optional)
-- **JUnit 5** - Testing framework
+## Lancer l'application
 
-## Getting Started
-
-### Prerequisites
-- Java 17 or higher
+### Prérequis
+- Java 17+
 - Maven 3.8+
 
-### Build
-```bash
-mvn clean install
-```
-
-### Run
+### Démarrage
 ```bash
 mvn spring-boot:run
 ```
 
-The application will start on `http://localhost:8080`
+API disponible sur `http://localhost:8080`
 
-### Access H2 Console
-Navigate to `http://localhost:8080/h2-console`
-
-## Database
-
-The application uses an in-memory H2 database with the following tables:
-
-### zone
-- id (PK)
-- code (unique)
-- name
-- risk_coefficient
-
-### product
-- id (PK)
-- name
-- description
-- created_at
-
-### pricing_rule
-- id (PK)
-- product_id (FK)
-- base_rate
-- age_factor_young
-- age_factor_adult
-- age_factor_senior
-- age_factor_elderly
-- created_at
-
-### quote
-- id (PK)
-- product_id (FK)
-- zone_id (FK)
-- client_name
-- client_age
-- base_price
-- final_price
-- applied_rules (JSON)
-- created_at
-
-## Business Logic
-
-### Pricing Calculation
-
-The pricing calculation follows this formula:
-
+### Console H2
 ```
-Final Price = Base Rate × Age Factor × Zone Risk Coefficient
+URL : http://localhost:8080/h2-console
+JDBC URL : jdbc:h2:mem:testdb
+User : sa
+Password : (vide)
 ```
 
-**Age Factors:**
-- YOUNG (18-24): 1.3
-- ADULT (25-45): 1.0
-- SENIOR (46-65): 1.2
-- ELDERLY (66-99): 1.5
-
-**Example:**
-- Product: Auto Insurance
-- Base Rate: 500
-- Age: 22 (YOUNG factor: 1.3)
-- Zone: Tunis (risk coefficient: 1.0)
-- Final Price: 500 × 1.3 × 1.0 = 650
+---
 
 ## API Endpoints
 
-### Create Quote
-```
-POST /api/quotes
-Content-Type: application/json
+### GET /api/products
+Retourne la liste des produits d'assurance disponibles.
 
+```json
+[
+  { "id": 1, "name": "Assurance Auto", "description": "...", "createdAt": "..." },
+  ...
+]
+```
+
+### POST /api/quotes
+Crée un nouveau devis avec calcul de prix automatique.
+
+**Request body :**
+```json
 {
   "productId": 1,
-  "zoneCode": "TN-TUN",
-  "clientName": "John Doe",
+  "zoneCode": "TUN",
+  "clientName": "Ahmed Ben Ali",
   "clientAge": 30
 }
+```
 
-Response: 201 Created
+**Response 201 Created :**
+```json
 {
   "quoteId": 1,
-  "productName": "Auto Insurance",
-  "zoneName": "Tunis",
-  "clientName": "John Doe",
+  "productName": "Assurance Auto",
+  "zoneName": "Grand Tunis",
+  "clientName": "Ahmed Ben Ali",
   "clientAge": 30,
   "basePrice": 500.00,
-  "finalPrice": 500.00,
-  "appliedRules": [...],
-  "createdAt": "2026-04-07T12:00:00"
+  "finalPrice": 600.00,
+  "appliedRules": [
+    "Produit: Assurance Auto - Taux de base: 500.00 TND",
+    "Catégorie d'âge: ADULT (âge 30) - Facteur: 1.00",
+    "Zone: Grand Tunis (TUN) - Coefficient: 1.20",
+    "Prix final: 500.00 × 1.00 × 1.20 = 600.00 TND"
+  ],
+  "createdAt": "2026-04-08T16:19:18"
 }
 ```
 
-### Get Quote
+**Erreurs de validation (400) :**
+```json
+{
+  "timestamp": "2026-04-08T16:00:00",
+  "status": 400,
+  "error": "Bad Request",
+  "errors": {
+    "clientAge": "Client must be at least 18 years old",
+    "clientName": "Client name must be between 2 and 100 characters"
+  }
+}
 ```
-GET /api/quotes/{id}
 
-Response: 200 OK
-{...quote details...}
-```
+### GET /api/quotes/{id}
+Retourne un devis par son ID. Retourne 404 si introuvable.
 
-### List Quotes
+### GET /api/quotes
+Retourne tous les devis. Supporte des filtres optionnels :
+
+| Paramètre   | Type   | Description                        |
+|-------------|--------|------------------------------------|
+| `productId` | Long   | Filtre par produit                 |
+| `minPrice`  | Double | Filtre par prix final minimum      |
+
+Exemples :
 ```
 GET /api/quotes
 GET /api/quotes?productId=1
-GET /api/quotes?minPrice=500
-
-Response: 200 OK
-[{...quote 1...}, {...quote 2...}]
+GET /api/quotes?minPrice=700
+GET /api/quotes?productId=1&minPrice=500
 ```
 
-## Implementation Tasks
+---
 
-Files marked with TODO comments contain implementation tasks for candidates:
+## Logique de tarification
 
-1. **QuoteController.java**
-   - Implement POST /api/quotes endpoint
-   - Implement GET /api/quotes/{id} endpoint
-   - Implement GET /api/quotes endpoint with filtering
+```
+Prix Final = Taux de Base × Facteur Âge × Coefficient Zone
+```
 
-2. **PricingService.java**
-   - Implement calculateQuote() method
-   - Implement business logic for pricing calculations
-   - Handle exceptions properly
+Implémentée dans `PricingService.calculateQuote()` :
+1. Chargement du produit (exception si introuvable)
+2. Chargement de la zone par code (exception si introuvable)
+3. Chargement de la règle de tarification du produit
+4. Détermination de la catégorie d'âge via `AgeCategory.fromAge()`
+5. Récupération du facteur âge via `getAgeFactor()`
+6. Calcul : `baseRate × ageFactor × zoneCoefficient` arrondi à 2 décimales
+7. Construction de la liste `appliedRules` documentant chaque étape
+8. Persistance du devis et retour du DTO
 
-3. **QuoteRepository.java**
-   - Implement custom query methods
-   - Add findByClientName
-   - Add findByProductId
-   - Add custom query for quotes above price threshold
+---
 
-4. **Quote.java Entity**
-   - Add any additional validation if needed
-   - Implement proper JSON serialization for appliedRules
+## Gestion des erreurs
 
-5. **GlobalExceptionHandler.java**
-   - Implement exception handlers for validation errors
-   - Implement exception handlers for not found errors
-   - Implement generic exception handler
+| Exception                        | Code HTTP | Description                        |
+|----------------------------------|-----------|------------------------------------|
+| `MethodArgumentNotValidException`| 400       | Validation @Valid échouée          |
+| `IllegalArgumentException`       | 404       | Produit / zone / règle introuvable |
+| `Exception` (fallback)           | 500       | Erreur inattendue (message générique) |
 
-6. **PricingServiceTest.java**
-   - Add test cases for different age categories
-   - Add test cases for zone coefficients
-   - Add edge case tests
-   - Add error handling tests
+---
 
-## Testing
+## Tests
 
-Run the test suite:
 ```bash
 mvn test
 ```
 
-## Notes for Candidates
+8 tests unitaires dans `PricingServiceTest` :
 
-- Use clean, professional Java code following Spring Boot best practices
-- Add proper validation on all inputs
-- Implement comprehensive error handling
-- Write meaningful test cases
-- Use meaningful variable and method names
-- Add JavaDoc comments where appropriate
-- Apply SOLID principles in your implementation
-
-## Submission Checklist
-
-Before submitting, ensure:
-- All Maven dependencies resolve correctly
-- The application compiles without errors
-- All TODO items are completed
-- Unit tests pass
-- API endpoints work correctly
-- Database operations are properly handled
-- Error cases are handled gracefully
+| Test | Résultat attendu |
+|------|-----------------|
+| `testCalculateQuoteForAdult` | 500 × 1.00 × 1.20 = **600.00 TND** |
+| `testCalculateQuoteForYoungClient` | 500 × 1.30 × 1.20 = **780.00 TND** |
+| `testCalculateQuoteForSeniorClient` | 500 × 1.20 × 1.20 = **720.00 TND** |
+| `testCalculateQuoteForElderlyClient` | 500 × 1.50 × 1.20 = **900.00 TND** |
+| `testCalculateQuoteWithInvalidProductId` | `IllegalArgumentException` |
+| `testCalculateQuoteWithInvalidZoneCode` | `IllegalArgumentException` |
+| `testGetQuoteById` | Création puis récupération, vérification des champs |
+| `testAgeBoundaries` | Âge 24 → YOUNG (780), âge 25 → ADULT (600) |

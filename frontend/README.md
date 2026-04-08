@@ -1,237 +1,168 @@
-# Pricing Engine Frontend - Angular Test Project
+# Pricing Engine — Frontend
 
-This is a skeleton Angular 17 frontend for a pricing engine test project. The structure and imports are in place, but you (the candidate) must implement the core functionality.
+Angular 17 frontend (standalone components) pour le moteur de tarification Tendanz.
 
-## Project Structure
+---
+
+## Stack technique
+
+| Technologie       | Usage                                  |
+|-------------------|----------------------------------------|
+| Angular 17        | Framework frontend                     |
+| Standalone Components | Pas de NgModule                   |
+| Reactive Forms    | Formulaire avec validation             |
+| RxJS              | Gestion des flux HTTP asynchrones      |
+| HttpClient        | Appels API REST                        |
+| Angular Router    | Navigation entre les pages             |
+
+---
+
+## Structure
 
 ```
-frontend/
-├── src/
-│   ├── app/
-│   │   ├── pages/
-│   │   │   ├── quote-form/          # Create new quote form
-│   │   │   ├── quote-list/          # List all quotes with filtering
-│   │   │   └── quote-detail/        # Display single quote details
-│   │   ├── services/
-│   │   │   ├── quote.service.ts     # TODO: Quote API calls
-│   │   │   └── product.service.ts   # TODO: Product API calls
-│   │   ├── models/
-│   │   │   ├── quote.model.ts       # Quote request/response interfaces
-│   │   │   └── product.model.ts     # Product interface
-│   │   ├── app.component.ts         # Root component (navbar)
-│   │   └── app.routes.ts            # Route configuration
-│   ├── environments/
-│   │   ├── environment.ts           # Development API URL
-│   │   └── environment.prod.ts      # Production API URL
-│   ├── main.ts                      # Bootstrap
-│   ├── index.html                   # HTML shell
-│   └── styles.css                   # Global styles
-├── angular.json                      # Angular CLI config
-├── tsconfig.json                     # TypeScript config
-└── package.json                      # Dependencies
+src/app/
+├── models/
+│   ├── quote.model.ts        # QuoteRequest, QuoteResponse
+│   └── product.model.ts      # Product
+├── services/
+│   ├── quote.service.ts      # createQuote, getQuote, getQuotes
+│   └── product.service.ts    # getProducts
+├── pages/
+│   ├── quote-form/           # Formulaire de création de devis
+│   ├── quote-list/           # Liste des devis avec filtres et tri
+│   └── quote-detail/         # Détail d'un devis
+├── app.component.ts          # Navbar + router-outlet
+└── app.routes.ts             # Configuration des routes
 ```
 
-## What You Need to Implement
+---
 
-### 1. Services
-
-#### `src/app/services/quote.service.ts`
-Implement these methods:
-- **`createQuote(request: QuoteRequest): Observable<QuoteResponse>`**
-  - POST to `/api/quotes`
-  - Send quote request data
-  - Return calculated quote response
-
-- **`getQuote(id: number): Observable<QuoteResponse>`**
-  - GET from `/api/quotes/:id`
-  - Return single quote details
-
-- **`getQuotes(filters?: {productId?: number, minPrice?: number}): Observable<QuoteResponse[]>`**
-  - GET from `/api/quotes`
-  - Support optional query parameters for filtering
-  - Return array of quotes
-
-#### `src/app/services/product.service.ts`
-Implement:
-- **`getProducts(): Observable<Product[]>`**
-  - GET from `/api/products`
-  - Return array of available products
-
-### 2. Components
-
-#### Quote Form (`src/app/pages/quote-form/`)
-- [ ] Initialize reactive form with FormGroup containing:
-  - `customerName` (required)
-  - `email` (required, email format)
-  - `phone` (required)
-  - `productId` (required, number)
-  - `zone` (required, from: Tunis, Sfax, Sousse)
-  - `age` (required, 18-100)
-  - `insuredAmount` (required, min 1000)
-  - `startDate` (required, date format)
-  - `duration` (required, min 1 month)
-
-- [ ] Load products from ProductService on init
-- [ ] Implement `onSubmit()` method:
-  - Validate form
-  - Call `quoteService.createQuote()`
-  - Show success/error message
-  - Navigate to quote detail on success
-- [ ] Display validation errors
-- [ ] Show loading state during submission
-
-#### Quote List (`src/app/pages/quote-list/`)
-- [ ] Load all quotes on component init
-- [ ] Implement filtering:
-  - Filter by product (dropdown)
-  - Filter by minimum price
-  - Call service with filters
-- [ ] Implement sorting:
-  - Sort by date (created date)
-  - Sort by price (final price)
-  - Support ascending/descending
-- [ ] Display quotes in table with:
-  - ID, Customer Name, Product, Zone, Final Price, Created Date
-  - Make rows clickable to view detail
-- [ ] Show loading state
-- [ ] Show error message if API fails
-- [ ] Show empty state if no quotes
-
-#### Quote Detail (`src/app/pages/quote-detail/`)
-- [ ] Get quote ID from route parameters
-- [ ] Load quote details from service
-- [ ] Display:
-  - Customer information
-  - Insurance details
-  - Coverage period
-  - Applied pricing rules
-  - Pricing breakdown with calculations
-- [ ] Show loading state
-- [ ] Show error message if quote not found
-- [ ] Provide back button to quote list
-
-## API Contract
-
-### Quote Request DTO
-```typescript
-{
-  customerName: string,
-  email: string,
-  phone: string,
-  productId: number,
-  zone: string,
-  age: number,
-  insuredAmount: number,
-  startDate: string,      // ISO format: YYYY-MM-DD
-  duration: number        // months
-}
-```
-
-### Quote Response DTO
-```typescript
-{
-  id: number,
-  customerName: string,
-  email: string,
-  phone: string,
-  productId: number,
-  productName: string,
-  zone: string,
-  age: number,
-  insuredAmount: number,
-  startDate: string,
-  duration: number,
-  basePrice: number,
-  ageModifier: number,    // percentage (e.g., 10 for +10%)
-  zoneModifier: number,   // percentage
-  appliedRules: string[], // e.g., ["AgeGroup25-35", "ZoneCoastal"]
-  finalPrice: number,
-  createdAt: string,      // ISO timestamp
-  updatedAt: string
-}
-```
-
-### Product DTO
-```typescript
-{
-  id: number,
-  name: string,
-  description: string,
-  basePrice: number,      // per month
-  minAge: number,
-  maxAge: number,
-  active: boolean,
-  createdAt: string,
-  updatedAt: string
-}
-```
-
-## Backend Connection
-
-- **Development API URL**: `http://localhost:8080/api`
-- **Base endpoints**:
-  - GET `/api/quotes` - List all quotes
-  - POST `/api/quotes` - Create new quote
-  - GET `/api/quotes/:id` - Get single quote
-  - GET `/api/products` - List products
-
-## Running the Project
+## Lancer l'application
 
 ```bash
-# Install dependencies
 npm install
-
-# Run development server
-npm start
-# App will be available at http://localhost:4200
-
-# Build for production
-npm run build
-
-# Run tests (if implemented)
-npm test
+ng serve
+# http://localhost:4200
 ```
 
-## Styling
+L'API backend doit tourner sur `http://localhost:8080`.
 
-The project includes:
-- Global CSS variables for Tendanz branding (Tendanz blue: #1F3864)
-- Responsive grid and flexbox layouts
-- Form styling with validation states
-- Loading spinners and alerts
-- Professional, clean design
+---
 
-## Key Points
+## Pages et fonctionnalités
 
-1. **All imports are in place** - Components, services, and modules are already imported
-2. **Interfaces are defined** - Use the models from `src/app/models/`
-3. **Routing is configured** - Routes are set up in `app.routes.ts`
-4. **HttpClient is provided** - Available in main.ts
-5. **Environment config is ready** - Use `environment.apiUrl` for base URL
-6. **Templates are prepared** - HTML templates have placeholders for your logic
+### /quotes — Liste des devis
+- Chargement de tous les devis au démarrage
+- Filtre par produit (dropdown chargé depuis l'API)
+- Filtre par prix minimum
+- Tri par date ou par prix (ascendant / descendant, toggle)
+- Clic sur une ligne → navigation vers le détail
+- États : chargement, erreur, liste vide
 
-## Error Handling
+### /quotes/new — Nouveau devis
+- Formulaire réactif avec les champs :
+  - `clientName` — requis, 2 à 100 caractères
+  - `productId` — requis, chargé depuis `GET /api/products`
+  - `zoneCode` — requis, parmi TUN / SFX / SOU
+  - `clientAge` — requis, entre 18 et 99
+- Validation affichée en temps réel sur chaque champ
+- État de chargement pendant la soumission
+- Succès → navigation automatique vers le détail du devis créé
+- Erreur → message affiché sous le formulaire
 
-- Use `catchError` operator from RxJS in services
-- Log errors to console for debugging
-- Display user-friendly error messages in components
-- Handle HTTP errors (4xx, 5xx) appropriately
+### /quotes/:id — Détail d'un devis
+- Chargement du devis par ID depuis les paramètres de route
+- Affichage :
+  - Informations client (nom, âge)
+  - Détails assurance (produit, zone)
+  - Règles de tarification appliquées (liste)
+  - Récapitulatif des prix (base et final)
+  - Date de création
+- Bouton retour vers la liste
+- États : chargement, erreur (devis introuvable)
 
-## Form Validation
+---
 
-The form component already has helper methods:
-- `hasError(fieldName: string, errorType: string): boolean`
-- `isFieldInvalid(fieldName: string): boolean`
-- `getErrorMessage(fieldName: string): string`
+## Services
 
-Use these to display validation feedback in the template.
+### QuoteService
 
-## Notes
+| Méthode | HTTP | Endpoint |
+|---------|------|----------|
+| `createQuote(request)` | POST | `/api/quotes` |
+| `getQuote(id)` | GET | `/api/quotes/:id` |
+| `getQuotes(filters?)` | GET | `/api/quotes?productId=X&minPrice=Y` |
 
-- The app will compile successfully but won't work until the TODO items are completed
-- Focus on implementing the service methods first
-- Then implement the component logic for loading and form submission
-- Finally, implement filtering and sorting in the list component
-- Use Angular best practices: reactive forms, RxJS operators, type safety
+Les filtres sont construits avec `HttpParams` et sont tous optionnels.
 
-Good luck!
+### ProductService
+
+| Méthode | HTTP | Endpoint |
+|---------|------|----------|
+| `getProducts()` | GET | `/api/products` |
+
+Tous les appels utilisent `catchError` pour retourner un message d'erreur lisible.
+
+---
+
+## Modèles TypeScript
+
+### QuoteRequest
+```typescript
+{
+  productId: number;
+  zoneCode: string;    // 'TUN' | 'SFX' | 'SOU'
+  clientName: string;
+  clientAge: number;
+}
+```
+
+### QuoteResponse
+```typescript
+{
+  quoteId: number;
+  productName: string;
+  zoneName: string;
+  clientName: string;
+  clientAge: number;
+  basePrice: number;
+  finalPrice: number;
+  appliedRules: string[];
+  createdAt: string;   // ISO timestamp
+}
+```
+
+### Product
+```typescript
+{
+  id: number;
+  name: string;
+  description: string;
+  createdAt: string;
+}
+```
+
+---
+
+## Configuration
+
+L'URL de l'API est définie dans `src/environments/environment.ts` :
+
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'http://localhost:8080/api'
+};
+```
+
+---
+
+## Routes
+
+| Path | Composant | Description |
+|------|-----------|-------------|
+| `/` | redirect | Redirige vers `/quotes` |
+| `/quotes` | QuoteListComponent | Liste des devis |
+| `/quotes/new` | QuoteFormComponent | Créer un devis |
+| `/quotes/:id` | QuoteDetailComponent | Détail d'un devis |
+| `**` | redirect | Redirige vers `/quotes` |
