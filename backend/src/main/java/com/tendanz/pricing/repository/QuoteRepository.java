@@ -1,6 +1,8 @@
 package com.tendanz.pricing.repository;
 
 import com.tendanz.pricing.entity.Quote;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,15 +12,7 @@ import java.util.List;
 
 /**
  * Repository for Quote entity.
- * Provides database operations for quotes.
- *
- * TODO: Add custom query methods:
- * - findByClientName(String clientName)
- * - findByProductId(Long productId)
- * - A custom @Query to find quotes with finalPrice above a given threshold
- *
- * Hint: Spring Data JPA can derive queries from method names.
- * For more complex queries, use @Query with JPQL.
+ * Provides database operations for quotes including pagination support.
  */
 @Repository
 public interface QuoteRepository extends JpaRepository<Quote, Long> {
@@ -27,6 +21,11 @@ public interface QuoteRepository extends JpaRepository<Quote, Long> {
 
     List<Quote> findByProductId(Long productId);
 
+    Page<Quote> findByProductId(Long productId, Pageable pageable);
+
     @Query("SELECT q FROM Quote q WHERE q.finalPrice >= :minPrice")
     List<Quote> findByFinalPriceGreaterThanEqual(@Param("minPrice") BigDecimal minPrice);
+
+    @Query("SELECT q FROM Quote q WHERE q.finalPrice >= :minPrice")
+    Page<Quote> findByFinalPriceGreaterThanEqual(@Param("minPrice") BigDecimal minPrice, Pageable pageable);
 }
