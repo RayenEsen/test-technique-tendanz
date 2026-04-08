@@ -36,7 +36,6 @@
         [class.invalid]="isFieldInvalid('productId')"
       >
         <option value="">-- Select Product --</option>
-        <!-- TODO: Populate with products from API -->
         <option *ngFor="let product of products" [value]="product.id">
           {{ product.name }}
         </option>

@@ -24,17 +24,8 @@ import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test class for PricingService.
- *
- * TODO: Implement at least 5 test cases covering:
- * - Quote calculation for different age categories (YOUNG, ADULT, SENIOR, ELDERLY)
- * - Different zone risk coefficients
- * - Edge cases (minimum age 18, maximum age 99, boundary between categories)
- * - Error handling (invalid product ID, invalid zone code)
- * - Quote retrieval by ID
- *
- * The @BeforeEach setUp() method below creates test data you can use.
- * Add your test methods below the existing structure.
+ * Unit tests for PricingService.
+ * Covers all age categories, error cases, quote retrieval, and boundary conditions.
  */
 @DataJpaTest
 @Import({PricingService.class, ObjectMapper.class})
