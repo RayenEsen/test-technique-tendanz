@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.List;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -56,8 +57,44 @@ public class PricingService {
      */
     @Transactional
     public QuoteResponse calculateQuote(QuoteRequest request) {
-        // TODO: Implement this method
-        throw new UnsupportedOperationException("TODO: Implement calculateQuote");
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new IllegalArgumentException("Product not found with ID: " + request.getProductId()));
+
+        Zone zone = zoneRepository.findByCode(request.getZoneCode())
+                .orElseThrow(() -> new IllegalArgumentException("Zone not found with code: " + request.getZoneCode()));
+
+        PricingRule pricingRule = pricingRuleRepository.findByProductId(product.getId())
+                .orElseThrow(() -> new IllegalArgumentException("No pricing rule found for product: " + product.getName()));
+
+        AgeCategory ageCategory = AgeCategory.fromAge(request.getClientAge());
+        BigDecimal ageFactor = getAgeFactor(pricingRule, ageCategory);
+        BigDecimal baseRate = pricingRule.getBaseRate();
+
+        BigDecimal finalPrice = baseRate
+                .multiply(ageFactor)
+                .multiply(zone.getRiskCoefficient())
+                .setScale(2, RoundingMode.HALF_UP);
+
+        List<String> appliedRules = new ArrayList<>();
+        appliedRules.add("Produit: " + product.getName() + " - Taux de base: " + baseRate + " TND");
+        appliedRules.add("Catégorie d'âge: " + ageCategory.name() + " (âge " + request.getClientAge() + ") - Facteur: " + ageFactor);
+        appliedRules.add("Zone: " + zone.getName() + " (" + zone.getCode() + ") - Coefficient: " + zone.getRiskCoefficient());
+        appliedRules.add("Prix final: " + baseRate + " × " + ageFactor + " × " + zone.getRiskCoefficient() + " = " + finalPrice + " TND");
+
+        Quote quote = Quote.builder()
+                .product(product)
+                .zone(zone)
+                .clientName(request.getClientName())
+                .clientAge(request.getClientAge())
+                .basePrice(baseRate)
+                .finalPrice(finalPrice)
+                .appliedRules(convertRulesToJson(appliedRules))
+                .build();
+
+        quoteRepository.save(quote);
+        log.info("Quote created: ID={}, client={}, finalPrice={}", quote.getId(), quote.getClientName(), finalPrice);
+
+        return mapToResponse(quote, appliedRules);
     }
 
     /**
@@ -113,6 +150,23 @@ public class PricingService {
                 .appliedRules(appliedRules)
                 .createdAt(quote.getCreatedAt())
                 .build();
+    }
+
+    /**
+     * Get all quotes with optional filters.
+     */
+    public List<QuoteResponse> getQuotes(Long productId, Double minPrice) {
+        List<Quote> quotes;
+        if (productId != null) {
+            quotes = quoteRepository.findByProductId(productId);
+        } else if (minPrice != null) {
+            quotes = quoteRepository.findByFinalPriceGreaterThanEqual(BigDecimal.valueOf(minPrice));
+        } else {
+            quotes = quoteRepository.findAll();
+        }
+        return quotes.stream()
+                .map(q -> mapToResponse(q, deserializeRules(q.getAppliedRules())))
+                .toList();
     }
 
     /**
