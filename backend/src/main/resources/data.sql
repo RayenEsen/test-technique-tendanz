@@ -11,7 +11,7 @@ INSERT INTO zone (code, name, risk_coefficient) VALUES
 INSERT INTO product (name, description, created_at) VALUES
 ('Assurance Auto', 'Comprehensive car insurance coverage', CURRENT_TIMESTAMP),
 ('Assurance Habitation', 'Home and property protection insurance', CURRENT_TIMESTAMP),
-('Assurance Sante', 'Health insurance and medical expense coverage', CURRENT_TIMESTAMP);
+('Assurance Santé', 'Health insurance and medical expense coverage', CURRENT_TIMESTAMP);
 
 -- Pricing Rules (product_id, base_rate, age factors, created_at)
 -- Age factors: YOUNG (18-24): 1.30 | ADULT (25-45): 1.00 | SENIOR (46-65): 1.20 | ELDERLY (66-99): 1.50
