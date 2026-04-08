@@ -57,33 +57,48 @@ export class QuoteListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // TODO: Load products for filter dropdown
-    // TODO: Load quotes from QuoteService
-    // TODO: Handle loading and error states
+    this.loading = true;
+    this.productService.getProducts().subscribe({
+      next: (products) => { this.products = products; },
+      error: (err) => { this.errorMessage = err.message; }
+    });
+    this.quoteService.getQuotes().subscribe({
+      next: (quotes) => {
+        this.quotes = quotes;
+        this.filteredQuotes = [...quotes];
+        this.sortQuotes();
+        this.loading = false;
+      },
+      error: (err) => {
+        this.errorMessage = err.message;
+        this.loading = false;
+      }
+    });
   }
 
-  /**
-   * Apply filters to the quotes
-   *
-   * TODO: Implement filtering
-   * - Get filter values from component properties
-   * - Call quoteService.getQuotes(filters)
-   * - Update filteredQuotes with results
-   * - Call sortQuotes() after receiving results
-   * - Handle errors
-   */
   applyFilters(): void {
-    // TODO: Implement filtering logic
-    console.log('Filters applied (TODO: implement)');
+    const filters: { productId?: number; minPrice?: number } = {};
+    if (this.selectedProductId) filters.productId = this.selectedProductId;
+    if (this.minPrice) filters.minPrice = this.minPrice;
+
+    this.loading = true;
+    this.quoteService.getQuotes(filters).subscribe({
+      next: (quotes) => {
+        this.filteredQuotes = quotes;
+        this.sortQuotes();
+        this.loading = false;
+      },
+      error: (err) => {
+        this.errorMessage = err.message;
+        this.loading = false;
+      }
+    });
   }
 
-  /**
-   * Reset all filters and reload all quotes
-   */
   resetFilters(): void {
     this.selectedProductId = null;
     this.minPrice = null;
-    // TODO: Reload all quotes
+    this.applyFilters();
   }
 
   /**
@@ -108,16 +123,18 @@ export class QuoteListComponent implements OnInit {
    * - Apply sortDirection (asc/desc)
    */
   private sortQuotes(): void {
-    // TODO: Implement in-memory sorting of this.filteredQuotes
+    this.filteredQuotes.sort((a, b) => {
+      let cmp = 0;
+      if (this.sortField === 'date') {
+        cmp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      } else {
+        cmp = a.finalPrice - b.finalPrice;
+      }
+      return this.sortDirection === 'asc' ? cmp : -cmp;
+    });
   }
 
-  /**
-   * Navigate to quote detail page
-   *
-   * TODO: Implement navigation to /quotes/:id
-   * Hint: use this.router.navigate(['/quotes', id])
-   */
   viewQuote(id: number): void {
-    // TODO: Navigate to quote detail
+    this.router.navigate(['/quotes', id]);
   }
 }
