@@ -61,27 +61,37 @@ export class QuoteFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // TODO: Load products from ProductService
-    // TODO: Populate this.products array
-    // TODO: Handle loading and error states
+    this.productService.getProducts().subscribe({
+      next: (products) => this.products = products,
+      error: (err) => this.errorMessage = err.message
+    });
   }
 
-  /**
-   * Submit the form
-   *
-   * TODO: Implement form submission
-   * - Check if form is valid (mark all fields as touched if invalid)
-   * - Set loading state
-   * - Build QuoteRequest: { productId: number, zoneCode: string, clientName: string, clientAge: number }
-   * - Call quoteService.createQuote(request)
-   * - On success: show message, navigate to /quotes/{quoteId}
-   * - On error: show error message
-   * - Always reset loading state
-   */
   onSubmit(): void {
     this.submitted = true;
-    // TODO: Implement form submission
-    console.log('Form submitted (TODO: implement)');
+    if (this.form.invalid) return;
+
+    this.loading = true;
+    this.errorMessage = null;
+
+    const request = {
+      productId: Number(this.form.value.productId),
+      zoneCode: this.form.value.zoneCode,
+      clientName: this.form.value.clientName,
+      clientAge: Number(this.form.value.clientAge)
+    };
+
+    this.quoteService.createQuote(request).subscribe({
+      next: (response) => {
+        this.loading = false;
+        this.successMessage = `Quote #${response.quoteId} created successfully! Final price: ${response.finalPrice} TND`;
+        this.router.navigate(['/quotes', response.quoteId]);
+      },
+      error: (err) => {
+        this.loading = false;
+        this.errorMessage = err.message;
+      }
+    });
   }
 
   /**
