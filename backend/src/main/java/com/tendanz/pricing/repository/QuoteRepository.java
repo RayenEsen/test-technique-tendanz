@@ -23,6 +23,10 @@ import java.util.List;
 @Repository
 public interface QuoteRepository extends JpaRepository<Quote, Long> {
 
-    // TODO: Add custom query methods here
+    List<Quote> findByClientName(String clientName);
 
+    List<Quote> findByProductId(Long productId);
+
+    @Query("SELECT q FROM Quote q WHERE q.finalPrice >= :minPrice")
+    List<Quote> findByFinalPriceGreaterThanEqual(@Param("minPrice") BigDecimal minPrice);
 }
