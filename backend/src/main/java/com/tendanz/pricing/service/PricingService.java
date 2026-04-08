@@ -194,9 +194,9 @@ public class PricingService {
                                             BigDecimal finalPrice, int clientAge) {
         List<String> rules = new ArrayList<>();
         rules.add("Product: " + product.getName() + " - Base rate: " + baseRate + " TND");
-        rules.add("Age category: " + ageCategory.name() + " (age " + clientAge + ") - Factor: " + ageFactor);
-        rules.add("Zone: " + zone.getName() + " (" + zone.getCode() + ") - Coefficient: " + zone.getRiskCoefficient());
-        rules.add("Final price: " + baseRate + " x " + ageFactor + " x " + zone.getRiskCoefficient() + " = " + finalPrice + " TND");
+        rules.add("Age category: " + ageCategory.name() + " (age " + clientAge + ") - Age factor: " + ageFactor);
+        rules.add("Zone: " + zone.getName() + " (" + zone.getCode() + ") - Zone coefficient: " + zone.getRiskCoefficient());
+        rules.add("Final price calculation: " + baseRate + " x " + ageFactor + " x " + zone.getRiskCoefficient() + " = " + finalPrice + " TND");
         return rules;
     }
 
