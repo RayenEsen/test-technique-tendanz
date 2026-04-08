@@ -1,7 +1,3 @@
-/**
- * Quote Request DTO - sent to backend when creating a new quote.
- * Must match the backend QuoteRequest DTO fields exactly.
- */
 export interface QuoteRequest {
   productId: number;
   zoneCode: string;
@@ -9,10 +5,6 @@ export interface QuoteRequest {
   clientAge: number;
 }
 
-/**
- * Quote Response DTO - returned from backend after creating or fetching a quote.
- * Must match the backend QuoteResponse DTO fields exactly.
- */
 export interface QuoteResponse {
   quoteId: number;
   productName: string;
@@ -22,5 +14,28 @@ export interface QuoteResponse {
   basePrice: number;
   finalPrice: number;
   appliedRules: string[];
-  createdAt: string; // ISO timestamp
+  createdAt: string;
+}
+
+export interface PagedQuoteResponse {
+  content: QuoteResponse[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+}
+
+export interface QuoteHistoryEntry {
+  id: number;
+  quoteId: number;
+  changedAt: string;
+  changeType: string;
+  previousFinalPrice: number | null;
+  newFinalPrice: number | null;
+  previousZoneCode: string | null;
+  newZoneCode: string | null;
+  previousProductName: string | null;
+  newProductName: string | null;
+  changeDescription: string;
 }

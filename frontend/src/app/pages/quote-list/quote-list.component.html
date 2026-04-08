@@ -83,4 +83,11 @@
   <div *ngIf="!loading && filteredQuotes.length === 0" class="empty-state">
     <p>No quotes found. <a routerLink="/quotes/new">Create one now</a></p>
   </div>
+
+  <!-- Pagination -->
+  <div *ngIf="!loading && totalPages > 1" class="pagination">
+    <button (click)="prevPage()" [disabled]="currentPage === 0" class="secondary">← Previous</button>
+    <span>Page {{ currentPage + 1 }} of {{ totalPages }} ({{ totalElements }} total)</span>
+    <button (click)="nextPage()" [disabled]="isLastPage" class="secondary">Next →</button>
+  </div>
 </div>

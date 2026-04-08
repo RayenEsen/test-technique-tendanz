@@ -3,23 +3,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
-import { QuoteRequest, QuoteResponse } from '../models/quote.model';
+import { QuoteRequest, QuoteResponse, PagedQuoteResponse, QuoteHistoryEntry } from '../models/quote.model';
 
-/**
- * Service for managing quotes
- * This service handles all API communication with the backend pricing engine
- *
- * TODO: Candidate must implement the following methods:
- * - createQuote(request: QuoteRequest): Observable<QuoteResponse>
- * - getQuote(id: number): Observable<QuoteResponse>
- * - getQuotes(filters?: {productId?: number, minPrice?: number}): Observable<QuoteResponse[]>
- *
- * Requirements:
- * - Use HttpClient for HTTP requests
- * - Use catchError operator to handle errors
- * - Base URL should be configurable via environment.apiUrl
- * - Handle error responses appropriately (log errors, throw user-friendly messages)
- */
 @Injectable({
   providedIn: 'root'
 })
@@ -29,15 +14,6 @@ export class QuoteService {
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Create a new quote
-   * POST /api/quotes
-   *
-   * @param request Quote request data
-   * @returns Observable of the created quote response with calculated pricing
-   *
-   * TODO: Implement this method
-   */
   createQuote(request: QuoteRequest): Observable<QuoteResponse> {
     return this.http.post<QuoteResponse>(`${this.apiUrl}${this.endpoint}`, request)
       .pipe(catchError(this.handleError));
@@ -53,6 +29,24 @@ export class QuoteService {
     if (filters?.productId) params = params.set('productId', filters.productId);
     if (filters?.minPrice) params = params.set('minPrice', filters.minPrice);
     return this.http.get<QuoteResponse[]>(`${this.apiUrl}${this.endpoint}`, { params })
+      .pipe(catchError(this.handleError));
+  }
+
+  getQuotesPaged(filters?: { productId?: number; minPrice?: number }, page = 0, size = 10): Observable<PagedQuoteResponse> {
+    let params = new HttpParams().set('page', page).set('size', size);
+    if (filters?.productId) params = params.set('productId', filters.productId);
+    if (filters?.minPrice) params = params.set('minPrice', filters.minPrice);
+    return this.http.get<PagedQuoteResponse>(`${this.apiUrl}${this.endpoint}`, { params })
+      .pipe(catchError(this.handleError));
+  }
+
+  getQuoteHistory(id: number): Observable<QuoteHistoryEntry[]> {
+    return this.http.get<QuoteHistoryEntry[]>(`${this.apiUrl}${this.endpoint}/${id}/history`)
+      .pipe(catchError(this.handleError));
+  }
+
+  exportPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}${this.endpoint}/${id}/pdf`, { responseType: 'blob' })
       .pipe(catchError(this.handleError));
   }
 
